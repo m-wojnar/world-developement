@@ -1,6 +1,9 @@
 *
 !.gitignore
+
 !parse_data.py
+
 !countries.json
 !series.json
 !years.json
+!data*.csv
