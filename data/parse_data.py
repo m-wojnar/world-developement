@@ -10,40 +10,36 @@ DROP_ROWS = -5
 
 
 def parse_data(df, output_dir):
-    series = set(df['Series Code'])
-    countries = set(df['Country Code'])
     years_dict = dict(map(lambda x: (int(x[:4]), x), df.columns[4:]))
+    series_dict = {row[0]: row[1] for row in df[['Series Code', 'Series Name']].drop_duplicates().values}
+    countries_dict = {row[0]: row[1] for row in df[['Country Code', 'Country Name']].drop_duplicates().values}
 
-    series_dict = {}
-    country_dict = {}
+    columns = ['country', 'year'] + list(series_dict.keys())
 
-    for s in series:
-        series_dict[s] = df[df['Series Code'] == s].iloc[0]['Series Name']
+    data = pd.DataFrame(np.empty((len(countries_dict) * len(years_dict), len(columns))), columns=columns)
+    data['country'] = data['country'].astype(str)
+    data['year'] = data['year'].astype(int)
 
-    for c in countries:
-        country_dict[c] = df[df['Country Code'] == c].iloc[0]['Country Name']
+    row_index = 0
 
-    data = pd.DataFrame(columns=['country', 'year'] + list(series_dict.keys()))
+    for ix, c in enumerate(countries_dict):
+        print(ix, c)
+        df_c = df[df['Country Code'] == c]
 
-    for c in countries:
         for y in years_dict:
-            tmp = df[df['Country Code'] == c]
-            row = []
+            df_y = df_c[['Series Code', years_dict[y]]]
+            df_y = df_y.dropna()
+            df_y = df_y.set_index('Series Code')
+            df_y = df_y.replace('..', np.NAN)
 
-            for s in series:
-                row.append(tmp[tmp['Series Code'] == s].iloc[0][years_dict[y]])
+            data.iloc[row_index] = [c, y] + df_y.loc[columns[2:]].values.squeeze().tolist()
+            row_index += 1
 
-            data = data.append({
-                'country': c,
-                'year': y,
-                **dict(zip(series_dict.keys(), row))
-            }, ignore_index=True)
-
-    data.replace('..', np.NAN, inplace=True)
+    data = data.sort_values(by=['country', 'year'])
     data.to_csv(f'{output_dir}/data.csv', index=False)
 
     with open(f'{output_dir}/countries.json', 'w') as fp:
-        json.dump(country_dict, fp)
+        json.dump(countries_dict, fp)
     
     with open(f'{output_dir}/series.json', 'w') as fp:
         json.dump(series_dict, fp)
@@ -51,7 +47,7 @@ def parse_data(df, output_dir):
     with open(f'{output_dir}/years.json', 'w') as fp:
         json.dump(years_dict, fp)
 
-    return data, series_dict, country_dict, years_dict
+    return data, series_dict, countries_dict, years_dict
 
 
 if __name__ == '__main__':
