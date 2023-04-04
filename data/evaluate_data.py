@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+from argparse import ArgumentParser
 
 
 def evaluate_data(filename):
@@ -13,6 +14,7 @@ def evaluate_data(filename):
     with open('./series.json') as f:
         series = json.load(f)
 
+    countries_eval = dict()
     years_eval = dict()
     series_eval = dict()
 
@@ -21,10 +23,16 @@ def evaluate_data(filename):
     not_null_rows = not_null.sum(axis=1)
 
     for i in range(len(df)):
-        year = df.iloc[i, 1]
+        country, year = df.iloc[i, 0], df.iloc[i, 1]
+        countries_eval[country] = countries_eval.get(country, 0) + not_null_rows[i]
         years_eval[year] = years_eval.get(year, 0) + not_null_rows[i]
 
-    print("-------- YEARS --------\n")
+    print("-------- COUNTRIES --------\n")
+    for key, value in countries_eval.items():
+        countries_eval[key] = value / (len(years) * len(series))
+        print(f'{countries[key]}: {countries_eval[key]}')
+
+    print("\n\n-------- YEARS --------\n")
     for key, value in years_eval.items():
         years_eval[key] = value / (len(countries) * len(series))
         print(f'{key}: {years_eval[key]}')
@@ -43,4 +51,8 @@ def evaluate_data(filename):
 
 
 if __name__ == "__main__":
-    evaluate_data('./data.csv')
+    args = ArgumentParser()
+    args.add_argument('--file', default='./data.csv', type=str)
+    args = args.parse_args()
+
+    evaluate_data(args.file)
