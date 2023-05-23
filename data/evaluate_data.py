@@ -48,8 +48,6 @@ def evaluate_data(filename):
 
 
 
-
-
 if __name__ == "__main__":
     args = ArgumentParser()
     args.add_argument('--file', default='./data.csv', type=str)
