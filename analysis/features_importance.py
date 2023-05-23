@@ -15,9 +15,9 @@ with open('../data/preprocessed/series.json', 'r') as f:
 
 gdp_pcap_log = df_train.pop('GDP.PCAP.LOG')
 
-print(f'{"Significance":^15}|{"Series":^85}|{"Coefficient":^20}|{"Intercept":^20}')
-print('-' * 140)
+print(f'{"Significance":^20}|{"Series":^105}|{"Coefficient":^20}|{"Intercept":^20}')
+print('-' * 165)
 
 for i, col in enumerate(df_train.columns, start=1):
     lm = LinearRegression().fit(df_train[col].values.reshape(-1, 1), gdp_pcap_log)
-    print(f'{i:>10}.    |{series[col]:85}|{lm.coef_[0]:^20.4f}|{lm.intercept_:^20.4f}')
+    print(f'{i:>15}.    | {series[col]:104}|{lm.coef_[0]:^20.4f}|{lm.intercept_:^20.4f}')
