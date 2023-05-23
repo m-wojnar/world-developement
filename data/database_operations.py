@@ -7,6 +7,7 @@ import json
 def csv_to_table(path: str, database: str, table: str):
   with open(path) as file:
     df = pd.read_csv(file)
+    df['year'] = df['year'].apply(lambda x: str(int(x)))
   with sqlite3.connect(database) as conn:
     df.to_sql(table, conn, index=False)
 
